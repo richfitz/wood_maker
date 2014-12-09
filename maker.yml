@@ -9,6 +9,8 @@ packages:
   - markdown
   - RCurl
 
+target_default: wood.html
+
 targets:
   data:
     depends:
