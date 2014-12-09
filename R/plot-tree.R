@@ -1,19 +1,19 @@
-fig.fraction.on.phylogeny <- function(phy.o, res) {
+fig_fraction_on_phylogeny <- function(phy_o, res) {
   hlt <- read.csv("data/high-level-taxonomy.csv", stringsAsFactors=FALSE)
-  phy.group <- hlt$Group[match(phy.o$tip.label, hlt$Order)]
+  phy.group <- hlt$Group[match(phy_o$tip.label, hlt$Order)]
   tmp <- 
-    lapply(seq_len(max(phy.o$edge)), function(x)
-           if ( x <= length(phy.o$tip.label) ) phy.group[[x]] else
-           unique(phy.group[get.descendants(x, phy.o, TRUE)]))
+    lapply(seq_len(max(phy_o$edge)), function(x)
+           if ( x <= length(phy_o$tip.label) ) phy.group[[x]] else
+           unique(phy.group[diversitree::get.descendants(x, phy_o, TRUE)]))
   grp <- sapply(tmp, function(x) if (length(x) == 1) x else "Rest")
 
-  col <- unname(cols.tree[grp])
-  col2 <- col[match(phy.o$edge[,2], seq_along(grp))]
+  col <- unname(cols_tree[grp])
+  col2 <- col[match(phy_o$edge[,2], seq_along(grp))]
 
-  p <- structure(res$order[["p.mean"]], names=res$order$order)
-  p <- p[phy.o$tip.label]
+  p <- structure(res$order[["p_mean"]], names=res$order$order)
+  p <- p[phy_o$tip.label]
 
-  t <- max(branching.times(phy.o))
+  t <- max(branching.times(phy_o))
   offset <- .15
 
   op <- par(no.readonly=TRUE)
@@ -51,23 +51,22 @@ fig.fraction.on.phylogeny <- function(phy.o, res) {
             #"Garryales"      # keep
             "Schizeales"       # also drop
             )
-  tip.color <- ifelse(phy.o$tip.label %in% drop, "#ffffff00", "black")
-  plt <- 
-    diversitree:::plot2.phylo(phy.o, type="fan", cex=.5, no.margin=TRUE,
-                              label.offset=t * .15, font=1,
-                              edge.col=col2, tip.color=tip.color,
-                              n.taxa=sqrt(phy.o$n.taxa)/10)
+  tip.color <- ifelse(phy_o$tip.label %in% drop, "#ffffff00", "black")
+  plt <- diversitree:::plot2.phylo(phy_o, type="fan", cex=.5, no.margin=TRUE,
+                                   label.offset=t * .15, font=1,
+                                   edge.col=col2, tip.color=tip.color,
+                                   n.taxa=sqrt(phy_o$n.taxa)/10)
 
   xy <- plt$xy
 
   r <- max(xy$r)*(1+offset)
-  n.tip <- length(phy.o$tip.label)
+  n.tip <- length(phy_o$tip.label)
   xy <- plt$xy[seq_len(n.tip),]
   xy.lab <- data.frame(x=cos(xy$theta)*r,
                        y=sin(xy$theta)*r)
   xrad <- .5 * diff(par("usr")[1:2])/50
   pie <- cbind(p, 1 - p)
-  pie.col <- cols.woody
+  pie.col <- cols_woody
 
   r <- 3/4
   r0 <- max(xy$r) * (1 + offset * (1-r)/2)
@@ -102,10 +101,10 @@ fig.fraction.on.phylogeny <- function(phy.o, res) {
   polygon(xx2, yy2, border="black", col=pie.col[1], lwd=.3)
 
   cex.legend <- 2/3
-  str <- str.leg <- setdiff(names(cols.tree), "Rest") # drop backbone
+  str <- str.leg <- setdiff(names(cols_tree), "Rest") # drop backbone
   str.leg[str.leg == "BasalAngiosperms"] <- '"Basal Angiosperms"'
-  legend("topleft", str.leg, fill=cols.tree[str],
+  legend("topleft", str.leg, fill=cols_tree[str],
          cex=cex.legend, bty="n", border=NA)
-  legend("topright", names(cols.woody), fill=cols.woody,
+  legend("topright", names(cols_woody), fill=cols_woody,
          cex=cex.legend, bty="n", border="black")
 }

@@ -49,3 +49,7 @@ kewLifeform_data.csv
 packrat.lock
 packrat.sources
 library
+
+data/zae/taxonomy.csv
+data/zae/woodiness.csv
+.maker

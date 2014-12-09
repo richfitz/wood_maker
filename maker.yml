@@ -1,0 +1,156 @@
+sources:
+  - R
+
+packages:
+  - ape
+  - downloader
+  - dplyr
+  - knitr
+  - markdown
+  - RCurl
+
+targets:
+  data:
+    depends:
+      - data/zae/tree.zip
+      - data/zae/woodiness.csv
+      - data/zae/taxonomy.csv
+      - data/theplantlist/cache.zip
+
+  # Data from Zanne et al.; 3 different files from Dryad
+  data/zae/tree.zip:
+    command: download_zae_tree(target_name)
+    check: exists
+  data/zae/woodiness.csv:
+    command: download_zae_woodiness(target_name)
+    check: exists
+  data/zae/taxonomy.csv:
+    command: download_zae_taxonomy(target_name)
+    check: exists
+
+  ## Cached version of the plant list
+  data/theplantlist/cache.zip:
+    command: download_theplantlist_cache(target_name)
+    check: exists
+
+  phy:
+    command: read_zae_tree("data/zae/tree.zip")
+  woodiness_zae:
+    command: read_zae_woodiness("data/zae/woodiness.csv")
+  genus_order_lookup_zae:
+    command: read_zae_lookup("data/zae/taxonomy.csv")
+
+  tpl:
+    command: read_names_accepted("data/theplantlist/cache.zip")
+
+  genus_order_lookup:
+    command: make_genus_order_lookup(tpl, genus_order_lookup_zae)
+  woodiness:
+    command: make_woodiness(woodiness_zae, tpl)
+  dat_g:
+    command: make_woodiness_genus(woodiness, genus_order_lookup, tpl)
+  # Extra sets requested by reviewer:
+  dat_g_h:
+    command: make_woodiness_genus_h(woodiness, genus_order_lookup, tpl)
+  dat_g_w:
+    command: make_woodiness_genus_w(woodiness, genus_order_lookup, tpl)
+  phy_o:
+    command: make_phylogeny_order(phy, dat_g, genus_order_lookup)
+
+  survey:
+    command: make_survey("data/survey_results.csv", "data/geo/country_coords.csv")
+
+  simulations:
+    depends:
+      - res_b
+      - res_h
+      - res_b_w
+      - res_h_w
+      - res_b_h
+      - res_h_h
+  res_b:
+    command: do_simulation_b(dat_g)
+  res_h:
+    command: do_simulation_b(dat_g)
+  # Extra sets requested by reviewer:
+  res_b_w:
+    command: do_simulation_b(dat_g_w)
+  res_h_w:
+    command: do_simulation_b(dat_g_w)
+  res_b_h:
+    command: do_simulation_b(dat_g_h)
+  res_h_h:
+    command: do_simulation_b(dat_g_h)
+
+  wood.Rmd:
+    command: sowsear("wood.R", output=target_name)
+    packages: sowsear
+  wood.md:
+    knitr:
+      auto_figure_prefix: true
+      options:
+        tidy: false
+    depends:
+      - dat_g
+      - dat_g_w
+      - dat_g_h
+      - phy_o
+      - survey
+      - res_b
+      - res_h
+      - res_b_w
+      - res_h_w
+      - res_b_h
+      - res_h_h
+  wood.html:
+    command: render("wood.md", target_name)
+    depends:
+      - .template.html
+
+  figures:
+    depends:
+      - doc/figs/fraction-by-genus.pdf
+      - doc/figs/fraction-by-family.pdf
+      - doc/figs/fraction-by-order.pdf
+      - doc/figs/fraction-on-phylogeny.pdf
+      - doc/figs/fraction-on-phylogeny-supp.pdf
+      - doc/figs/survey-results.pdf
+      - doc/figs/survey-distribution.pdf
+      - doc/figs/variability.pdf
+      - doc/figs/graphical-abstract.pdf
+      - doc/figs/distribution-raw.pdf
+      - doc/figs/distribution-raw-errors.pdf
+
+  doc/figs/fraction-by-genus.pdf:
+    command: fig_fraction_by_genus(res_b, res_h, dat_g)
+    plot: {width: 6, height: 6}
+  doc/figs/fraction-by-family.pdf:
+    command: fig_fraction_by_family(res_b, res_h, dat_g)
+    plot: {width: 6, height: 6}
+  doc/figs/fraction-by-order.pdf:
+    command: fig_fraction_by_order(res_b, res_h, dat_g)
+    plot: {width: 6, height: 6}
+  doc/figs/fraction-on-phylogeny.pdf:
+    command: fig_fraction_on_phylogeny(phy_o, res_b)
+    plot: {width: 6, height: 6}
+  doc/figs/fraction-on-phylogeny-supp.pdf:
+    command: fig_fraction_on_phylogeny(phy_o, res_h)
+    plot: {width: 6, height: 6}
+  doc/figs/distribution-raw.pdf:
+    command: fig_distribution_raw(res_b, res_h)
+    plot: {width: 6, height: 4}
+  doc/figs/distribution-raw-errors.pdf:
+    plot: {width: 6, height: 4}
+    command: fig_distribution_raw_errors(res_b, res_h, res_b_w, res_h_w, res_b_h, res_h_h)
+  doc/figs/survey-results.pdf:
+    command: fig_survey_results(survey, res_b, res_h)
+    plot: {width: 6, height: 4}
+  doc/figs/survey-distribution.pdf:
+    command: fig_survey_distribution(survey, res_b, res_h)
+    plot: {width: 6, height: 5}
+  doc/figs/variability.pdf:
+    command: fig_variability(dat_g)
+    plot: {width: 7, height: 8}
+  doc/figs/graphical-abstract.pdf:
+    command: fig_graphical_abstract(res_b, res_h, dat_g, survey)
+    plot: {width: 7, height: 3.5}

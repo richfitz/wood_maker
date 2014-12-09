@@ -1,11 +1,6 @@
 RSCRIPT_PKGS := $(shell Rscript -e 'library(methods);writeLines(Sys.getenv("R_DEFAULT_PACKAGES"))')
 RSCRIPT = Rscript --default-packages="${RSCRIPT_PKGS},methods"
 
-DATA_RAW = data/zae/genus_order_lookup.csv data/theplantlist/names_accepted.csv
-DATA_PROCESSED = output/woodiness.rds output/dat.g.rds \
-	output/dat.g.w.rds output/dat.g.h.rds output/phy.o.rds
-REPORT = wood.Rmd wood.md wood.html
-
 all: wood.html doc/wood-ms.pdf
 
 data-raw: ${DATA_RAW}
@@ -29,30 +24,8 @@ doc/wood-ms.pdf: wood.md
 data/geo/country_coords.csv:
 	${RSCRIPT} make/data-geo-country_coords.csv.R
 
-data/zae/genus_order_lookup.csv: make/data-zae.R
-	${RSCRIPT} $<
-
-data/theplantlist/names_accepted.csv: make/data-theplantlist.R
-	${RSCRIPT} $<
-
-output/genus_order_lookup.csv: make/output-genus_order_lookup.csv.R ${DATA_RAW}
-	${RSCRIPT} $<
-
-output/woodiness.rds: make/output-woodiness.rds.R R/load.R R/build.R ${DATA_RAW}
-	${RSCRIPT} $<
-
 DATA_GENUS_DEPS = output/genus_order_lookup.csv output/woodiness.rds \
 	R/load.R R/build.R
-
-output/dat.g.rds: make/output-dat.g.rds.R ${DATA_GENUS_DEPS}
-	${RSCRIPT} $<
-output/dat.g.w.rds: make/output-dat.g.w.rds.R ${DATA_GENUS_DEPS}
-	${RSCRIPT} $<
-output/dat.g.h.rds: make/output-dat.g.h.rds.R ${DATA_GENUS_DEPS}
-	${RSCRIPT} $<
-
-output/phy.o.rds: make/output-phy.o.rds.R output/dat.g.rds
-	${RSCRIPT} $<
 
 # Cache downloads
 RELEASE=v1.0
@@ -66,29 +39,6 @@ DRYAD_CONTENTS = data/zae/Spermatophyta_Genera.csv \
   data/zae/GlobalWoodinessDatabase.csv
 DRYAD_CACHE = .dryad-cache.tar.gz
 DRYAD_URL = https://github.com/richfitz/wood/releases/download/${RELEASE}/dryad-cache.tar.gz
-
-${THEPLANTLIST_CACHE}:
-	curl -L -o $@ ${THEPLANTLIST_URL}
-theplantlist-cache-fetch: ${THEPLANTLIST_CACHE}
-theplantlist-delete:
-	rm -rf ${THEPLANTLIST_CONTENTS}
-theplantlist-cache-unpack: ${THEPLANTLIST_CACHE}
-	tar -zxf $<
-theplantlist-cache-archive:
-	tar -zcf ${THEPLANTLIST_CACHE} ${THEPLANTLIST_CONTENTS}
-
-${DRYAD_CACHE}:
-	curl -L -o $@ ${DRYAD_URL}
-dryad-cache-fetch: ${DRYAD_CACHE}
-dryad-delete:
-	rm -rf ${DRYAD_CONTENTS}
-dryad-cache-unpack: ${DRYAD_CACHE}
-	tar -zxf $<
-dryad-cache-archive:
-	tar -zcf ${DRYAD_CACHE} ${DRYAD_CONTENTS}
-
-cache-fetch: theplantlist-cache-fetch dryad-cache-fetch
-cache-unpack: theplantlist-cache-unpack dryad-cache-unpack
 
 ARCHIVES = wood-supporting.tar.gz wood-analysis.tar.gz
 

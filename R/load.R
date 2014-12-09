@@ -78,20 +78,3 @@ load.survey <- function() {
   d
 }
 
-cleanup.country.names <- function(x) {
-  ## In cases where multiple countries are given, take the first one:
-  x <- sub("( and |, | / | & ).+", "", x)
-  ## Trim trailing non-alphabetic characters
-  x <- sub("[^A-Za-z]+$", "", x)
-  ## Translate inconsistent names:
-  translate <- list(France="france",
-                    "United States"=c("US", "USA"),
-                    "United Kingdom"=c("UK", "Scotland"),
-                    "Brazil"="Brasil")
-  tr <- cbind(to=rep(names(translate), sapply(translate, length)),
-              from=unlist(translate))
-  i <- match(x, tr[,"from"])
-  x[!is.na(i)] <- unname(tr[i[!is.na(i)],"to"])
-  x[x == ""] <- NA
-  x
-}
