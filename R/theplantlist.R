@@ -67,12 +67,6 @@ load_names <- function(filename) {
   dat
 }
 
-download_theplantlist_cache <- function(filename) {
-  url <-
-    "https://github.com/richfitz/wood/releases/download/v1.0/theplantlist-cache.tar.gz"
-  download_file(url, filename)
-}
-
 unpack_theplantlist_cache <- function(filename) {
   unzip(filename)
 }
