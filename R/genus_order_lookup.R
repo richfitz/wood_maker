@@ -14,22 +14,22 @@ make_genus_order_lookup <- function(tpl, genus_order_lookup_zae) {
 
   duplicates <- sort(tpl$genus[duplicated(tpl$genus)])
 
-  info <- tpl_full                %.%
-    filter(genus %in% duplicates) %.%
-    group_by(family, genus, major.clade) %.%
-    summarise(n=length(species))  %.%
+  info <- tpl_full                %>%
+    filter(genus %in% duplicates) %>%
+    group_by(family, genus, major.clade) %>%
+    summarise(n=length(species))  %>%
     arrange(genus, desc(n))
 
   ## We'll generally keep just the largest group:
-  keep <- as.data.frame(info)     %.%
-    group_by(genus)               %.%
-    summarise(family=family[[1]], major.clade=major.clade[[1]]) %.%
+  keep <- as.data.frame(info)     %>%
+    group_by(genus)               %>%
+    summarise(family=family[[1]], major.clade=major.clade[[1]]) %>%
     arrange(genus)
 
   ## These are the species that we are ignoring (28).  This is tiny
   ## compared with the other taxonomic errors in the database.
-  drop <- as.data.frame(info) %.% group_by(genus) %.%
-    summarise(family=family[-1], n=n[-1]) %.% arrange(genus)
+  drop <- as.data.frame(info) %>% group_by(genus) %>%
+    summarise(family=family[-1], n=n[-1]) %>% arrange(genus)
   sum(drop$n)
 
   ## But rewrite a couple of these anyway:
